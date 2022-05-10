@@ -38,6 +38,11 @@ RUN addgroup --gid 1000 steinbock && \
 
 RUN python3.8 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
+
+RUN pip install -i https://mirror.sjtu.edu.cn/pypi/web/simple pip -U
+RUN pip config set global.index-url https://mirror.sjtu.edu.cn/pypi/web/simple
+RUN pip config set install.trusted-host mirror.sjtu.edu.cn
+
 RUN python -m pip install --upgrade pip setuptools wheel && \
     python -m pip install --upgrade tensorflow${TENSORFLOW_SUFFIX}==${TENSORFLOW_VERSION}
 
