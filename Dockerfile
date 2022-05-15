@@ -1,3 +1,8 @@
+# Before building Docker image,
+# Manually download ilastik binary files to the steinbock directory
+# Manually download wxPython installation file to the steinbock directory
+# Manually download Deepcell Multiplex Segmentation file to the steinbock directory
+
 ARG TENSORFLOW_VERSION=2.5.1
 ARG TENSORFLOW_SUFFIX=
 
@@ -10,23 +15,16 @@ ARG FIXUID_VERSION=0.5.1
 ARG ILASTIK_BINARY=ilastik-1.3.3post3-Linux.tar.bz2
 ARG CELLPROFILER_VERSION=4.2.1
 ARG CELLPROFILER_PLUGINS_VERSION=4.2.1
-ARG TZ=Europe/Zurich
+ARG TZ=Asia/Shanghai
 
 ENV DEBIAN_FRONTEND=noninteractive PYTHONDONTWRITEBYTECODE="1" PYTHONUNBUFFERED="1"
 
-RUN echo "deb http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse" > /etc/apt/sources.list  && \
-    echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse" >> /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse" >> /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse" >> /etc/apt/sources.list && \
-    echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse" >> /etc/apt/sources.list && \
-    echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse" >> /etc/apt/sources.list && \
-    echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
-    echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse" >> /etc/apt/sources.list && \
-    echo "deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse" >> /etc/apt/sources.list && \
+RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list && \
+    apt-get clean && \
+    apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get update
 
-RUN apt-get update && apt-get install -y build-essential git locales python3.8 python3.8-dev python3.8-venv
+RUN apt-get install -y build-essential git locales python3.8 python3.8-dev python3.8-venv
 
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && locale-gen
 ENV LANG="en_US.UTF-8" LANGUAGE="en_US:en" LC_ALL="en_US.UTF-8"
@@ -60,16 +58,16 @@ COPY fixuid.yml /etc/fixuid/config.yml
 
 # ilastik
 
-RUN mkdir /opt/ilastik && \
-    curl -SsL "https://files.ilastik.org/${ILASTIK_BINARY}" | tar -C /opt/ilastik -xjf - --strip-components=1
+COPY ilastik-1.3.3post3-Linux.tar.bz2 /opt/ilastik/ilastik-1.3.3post3-Linux.tar.bz2
+RUN tar -C /opt/ilastik -xjf /opt/ilastik/ilastik-1.3.3post3-Linux.tar.bz2 --strip-components=1
 
 # cellprofiler
 
 RUN apt-get install -y libmysqlclient-dev libnotify-dev libsdl2-dev libwebkitgtk-3.0 openjdk-11-jdk-headless
 ENV JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"
 
-RUN curl -SsO https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04/wxPython-4.1.0-cp38-cp38-linux_x86_64.whl && \
-    python -m pip install --upgrade numpy wheel wxPython-4.1.0-cp38-cp38-linux_x86_64.whl && \
+COPY wxPython-4.1.0-cp38-cp38-linux_x86_64.whl ./wxPython-4.1.0-cp38-cp38-linux_x86_64.whl
+RUN python -m pip install --upgrade numpy wheel wxPython-4.1.0-cp38-cp38-linux_x86_64.whl && \
     rm wxPython-4.1.0-cp38-cp38-linux_x86_64.whl
 
 RUN python -m pip install --upgrade "cellprofiler==${CELLPROFILER_VERSION}"
