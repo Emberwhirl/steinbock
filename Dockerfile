@@ -1,7 +1,7 @@
 # Before building Docker image,
-# Manually download ilastik binary files to the steinbock directory
-# Manually download wxPython installation file to the steinbock directory
-# Manually download Deepcell Multiplex Segmentation file to the steinbock directory
+# Manually download the ilastik binary file (ilastik-1.3.3post3-Linux.tar.bz2) to the steinbock directory
+# Manually download wxPython installation file (wxPython-4.1.0-cp38-cp38-linux_x86_64.whl) to the steinbock directory
+# Manually download Deepcell Multiplex Segmentation file (MultiplexSegmentation-7.tar.gz) to the steinbock directory
 
 ARG TENSORFLOW_VERSION=2.5.1
 ARG TENSORFLOW_SUFFIX=
@@ -86,8 +86,10 @@ RUN python -m pip install --upgrade -r /app/steinbock/requirements_deepcell${TEN
     python -m pip install --upgrade -r /app/steinbock/requirements.txt
 ENV TF_CPP_MIN_LOG_LEVEL="2" NO_AT_BRIDGE="1"
 
-RUN mkdir -p /opt/keras/models && \
-    curl -SsL https://deepcell-data.s3-us-west-1.amazonaws.com/saved-models/MultiplexSegmentation-7.tar.gz | tar -C /opt/keras/models -xzf - && \
+
+RUN mkdir -p /opt/keras/models
+COPY MultiplexSegmentation-7.tar.gz  /opt/keras/models/MultiplexSegmentation-7.tar.gz
+RUN tar -C /opt/keras/models -xzf /opt/keras/models/MultiplexSegmentation-7.tar.gz && \
     rm /opt/keras/models/._MultiplexSegmentation
 
 COPY conftest.py MANIFEST.in pyproject.toml setup.cfg setup.py /app/steinbock/
